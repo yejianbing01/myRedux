@@ -22,7 +22,7 @@ export const App = () => {
 
 }
 
-
+/** 统一创建新状态的方法 */
 const createNewState = (state, actionType, actionData) => {
   if (actionType === 'updateUser') {
     return {
@@ -32,12 +32,12 @@ const createNewState = (state, actionType, actionData) => {
         ...actionData
       }
     }
+  } else {
+    return state
   }
 }
 
-
-
-
+// ---------------------- children ----------------------
 
 const Children1 = () => {
   const contextValue = useContext(appContext)
@@ -53,8 +53,7 @@ const Children2 = () => {
   const { appState, setAppState } = useContext(appContext)
   
   const onChange = (e) => {
-    appState.user.name = e.target.value
-    setAppState({...appState})
+    setAppState(createNewState(appState, 'updateUser', { name: e.target.value }))
   }
 
   return (
