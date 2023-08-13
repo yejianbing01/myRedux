@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
 
+// ---------------------- redux ----------------------
+
 export const appContext = React.createContext(null)
 
-export const store = {
-  state: {
-    user: { name: 'name', age: 18 },
-    group: { groupName: '前端组' }
-  },
+const store = {
+  state: undefined,
+  reducer: undefined,
   setState(newState) {
     store.state = newState
     store.listeners.forEach(fn => fn(store.state))
@@ -19,23 +19,17 @@ export const store = {
       store.listeners.splice(index, 1)
     }
   }
-
 }
 
-/** 统一创建新状态的方法 */
-const reducer = (state, { type, payload }) => {
-  if (type === 'updateUser') {
-    return {
-      ...state,
-      user: {
-        ...state.user,
-        ...payload
-      }
-    }
-  } else {
-    return state
-  }
+export const createStore = (initState, reducer) => {
+  store.state = initState
+  store.reducer = reducer
+  return store;
 }
+
+
+// ---------------------- react-redux ----------------------
+
 
 const changed = (oldState, newState) => {
   for (let key in oldState) {
@@ -45,7 +39,7 @@ const changed = (oldState, newState) => {
   }
   return false
 }
-export const connect = (selector) => (Component) => {
+export const connect = (selector, mapDispatchToProps) => (Component) => {
   /** 为了实现dispatch, 类似react-redux 的 connect */
   return (props) => {
     const { state, setState, subscribe } = store
@@ -62,10 +56,10 @@ export const connect = (selector) => (Component) => {
       return unSubscribe
     }, [selector])
 
-    const dispatch = (action) => {
-      setState(reducer(state, action))
-    }
+    const dispatch = (action) => setState(store.reducer(state, action))
+    const dispatchProps = mapDispatchToProps ? mapDispatchToProps(dispatch) : { dispatch }
 
-    return <Component {...props} dispatch={dispatch} {...selectorState} />
+
+    return <Component {...props} {...selectorState} {...dispatchProps} />
   }
 }

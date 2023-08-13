@@ -1,6 +1,26 @@
 // 请从课程简介里下载本代码
 import React, { useState, useContext, useEffect } from 'react'
-import { appContext, connect, store } from './redux'
+import { appContext, connect, createStore } from './redux'
+
+const initState = {
+    user: { name: 'name', age: 18 },
+    group: { groupName: '前端组' }
+}
+/** 统一创建新状态的方法 */
+const reducer = (state, { type, payload }) => {
+  if (type === 'updateUser') {
+    return {
+      ...state,
+      user: {
+        ...state.user,
+        ...payload
+      }
+    }
+  } else {
+    return state
+  }
+}
+const store = createStore(initState, reducer)
 
 // ---------------------- App ----------------------
 export const App = () => {
@@ -28,14 +48,16 @@ const Children1 = connect()(({ state }) => {
     )
 })
 
-const Children2 = connect()(({ dispatch, state, ...props }) => {
-  console.log('children2 render')
-  const onChange = (e) => {
-    dispatch({
-      type: 'updateUser',
-      payload: { name: e.target.value },
-    })
+const Children2 = connect(
+  null,
+  (dispatch) => {
+    return {
+      updateUser: (payload) => dispatch({ type: 'updateUser', payload })
+    }
   }
+)(({ updateUser, state, ...props }) => {
+  console.log('children2 render')
+  const onChange = (e) => updateUser({ name: e.target.value })
 
   return (
     <section>
