@@ -15,7 +15,7 @@ export const App = () => {
   return (
     <appContext.Provider value={contextValue}>
       <Children1/>
-      <Children2/>
+      <Wrapper/>
       <Children3/>
     </appContext.Provider>
   )
@@ -23,18 +23,29 @@ export const App = () => {
 }
 
 /** 统一创建新状态的方法 */
-const createNewState = (state, actionType, actionData) => {
-  if (actionType === 'updateUser') {
+const reducer = (state, { type, payload } ) => {
+  if (type === 'updateUser') {
     return {
       ...state,
       user: {
         ...state.user,
-        ...actionData
+        ...payload
       }
     }
   } else {
     return state
   }
+}
+
+/** 为了实现dispatch, 类似react-redux 的 connect */
+const Wrapper = () => {
+  const { appState, setAppState } = useContext(appContext)
+
+  const dispatch = (action) => {
+    setAppState(reducer(appState, action))
+  }
+
+  return <Children2 dispatch={dispatch} state={appState} />
 }
 
 // ---------------------- children ----------------------
@@ -49,17 +60,19 @@ const Children1 = () => {
     )
 }
 
-const Children2 = () => {
-  const { appState, setAppState } = useContext(appContext)
-  
+const Children2 = ({ dispatch, state}) => {
+
   const onChange = (e) => {
-    setAppState(createNewState(appState, 'updateUser', { name: e.target.value }))
+    dispatch({
+      type: 'updateUser',
+      payload: { name: e.target.value },
+    })
   }
 
   return (
     <section>
       children2
-      <input value={appState.user.name} onChange={onChange}/>
+      <input value={state.user.name} onChange={onChange}/>
     </section>
   )
 } 
