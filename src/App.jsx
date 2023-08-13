@@ -1,26 +1,23 @@
 // 请从课程简介里下载本代码
-import React, {useState, useContext} from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 
 const appContext = React.createContext(null)
-
-
-export const App = () => {
-
-  const [appState, setAppState] = useState({
-    user: {name: 'name', age: 18}
-  })
-
-  const contextValue = { appState, setAppState }
-  
-  return (
-    <appContext.Provider value={contextValue}>
-      <Children1/>
-      <Children2>
-        children2 的 内容
-      </Children2>
-      <Children3/>
-    </appContext.Provider>
-  )
+const store = {
+  state: {
+    user: { name: 'name', age: 18 }
+  },
+  setState(newState) {
+    store.state = newState
+    store.listeners.forEach(fn=>fn(store.state))
+  },
+  listeners: [],
+  subscriber(fn) {
+    store.listeners.push(fn)
+    return () => {
+      const index = store.listeners.indexOf(fn)
+      store.listeners.splice(index, 1)
+    }
+  }
 
 }
 
@@ -42,30 +39,49 @@ const reducer = (state, { type, payload } ) => {
 const connect = (Component) => {
   /** 为了实现dispatch, 类似react-redux 的 connect */
   return (props) => {
-    const { appState, setAppState } = useContext(appContext)
+    const { state, setState, subscriber } = store
+    const [_, update] = useState({})
+    useEffect(() => {
+      subscriber(() => update({}))
+    }, [])
 
     const dispatch = (action) => {
-      setAppState(reducer(appState, action))
+      setState(reducer(state, action))
     }
 
-    return <Component {...props} dispatch={dispatch} state={appState} />
+    return <Component {...props} dispatch={dispatch} state={state} />
   }
+}
+
+// ---------------------- App ----------------------
+export const App = () => {
+  return (
+    <appContext.Provider value={store}>
+      <Children1/>
+      <Children2>
+        children2 的 内容
+      </Children2>
+      <Children3/>
+    </appContext.Provider>
+  )
+
 }
 
 
 // ---------------------- children ----------------------
 
-const Children1 = connect(() => {
-  const contextValue = useContext(appContext)
+const Children1 = connect(({ state }) => {
+  console.log('children1 render')
   return (
       <section>
         children1:
-        { contextValue.appState.user.name }
+        { state.user.name }
       </section>
     )
 })
 
 const Children2 = connect(({ dispatch, state, ...props }) => {
+  console.log('children2 render')
   const onChange = (e) => {
     dispatch({
       type: 'updateUser',
@@ -81,4 +97,7 @@ const Children2 = connect(({ dispatch, state, ...props }) => {
   )
 })
 
-const Children3 = () => <section>children3</section>
+const Children3 = () => {
+  console.log('children3 render')
+  return (<section>children3</section>)
+}
