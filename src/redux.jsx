@@ -66,18 +66,21 @@ export const connect = (selector, mapDispatchToProps) => (Component) => {
       return unSubscribe
     }, [selector])
 
-    // 增强 dispatch，支持异步action
+    // redux-thunk 增强 dispatch，支持异步 action
     const prevDispatch = store.dispatch
     const dispatch = (action) => {
       if (action instanceof Function) {
         action(dispatch)
       } else {
-        prevDispatch(action)
+      // redux-promise 增强 dispatch，支持异步 payload
+        if (action.payload instanceof Promise) {
+          action.payload.then(payload => dispatch({ ...action, payload }) )
+        } else {
+          prevDispatch(action)
+        }
       }
     }
-
     const dispatchProps = mapDispatchToProps ? mapDispatchToProps(dispatch) : { dispatch }
-
 
     return <Component {...props} {...selectorState} {...dispatchProps} />
   }
