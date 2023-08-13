@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
 // ---------------------- redux ----------------------
-
-export const appContext = React.createContext(null)
-
 const store = {
   state: undefined,
   reducer: undefined,
@@ -20,11 +17,19 @@ const store = {
     }
   }
 }
-
 export const createStore = (initState, reducer) => {
   store.state = initState
   store.reducer = reducer
   return store;
+}
+export const Provider = ({ store, children }) => {
+  const appContext = React.createContext(null)
+
+  return (
+    <appContext.Provider value={store}>
+      {children}
+    </appContext.Provider>
+  )
 }
 
 

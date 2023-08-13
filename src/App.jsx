@@ -1,6 +1,6 @@
 // 请从课程简介里下载本代码
 import React, { useState, useContext, useEffect } from 'react'
-import { appContext, connect, createStore } from './redux'
+import { Provider, connect, createStore } from './redux'
 
 const initState = {
     user: { name: 'name', age: 18 },
@@ -25,13 +25,13 @@ const store = createStore(initState, reducer)
 // ---------------------- App ----------------------
 export const App = () => {
   return (
-    <appContext.Provider value={store}>
+    <Provider store={store}>
       <Children1/>
       <Children2>
         children2 的 内容
       </Children2>
       <Children3/>
-    </appContext.Provider>
+    </Provider>
   )
 
 }
