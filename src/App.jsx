@@ -18,7 +18,7 @@ export const App = () => {
 
 // ---------------------- children ----------------------
 
-const Children1 = connect(({ state }) => {
+const Children1 = connect()(({ state }) => {
   console.log('children1 render')
   return (
       <section>
@@ -28,7 +28,7 @@ const Children1 = connect(({ state }) => {
     )
 })
 
-const Children2 = connect(({ dispatch, state, ...props }) => {
+const Children2 = connect()(({ dispatch, state, ...props }) => {
   console.log('children2 render')
   const onChange = (e) => {
     dispatch({
@@ -45,7 +45,15 @@ const Children2 = connect(({ dispatch, state, ...props }) => {
   )
 })
 
-const Children3 = () => {
+const Children3 = connect(
+  (state) => ({ groupName: state.group.groupName })
+)(
+  (props) => {
   console.log('children3 render')
-  return (<section>children3</section>)
-}
+  return (
+    <section>
+      children3
+      {props.groupName}
+    </section>
+  )
+})
