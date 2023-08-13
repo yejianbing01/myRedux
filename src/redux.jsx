@@ -1,27 +1,31 @@
 import React, { useState, useEffect } from 'react'
 
 // ---------------------- redux ----------------------
+let state = undefined
+let reducer = undefined
+let listeners = []
+const setState = (newState) => {
+  state = newState
+  listeners.forEach(fn => fn(state))
+};
 const store = {
-  state: undefined,
-  reducer: undefined,
-  setState(newState) {
-    store.state = newState
-    store.listeners.forEach(fn => fn(store.state))
-  },
-  listeners: [],
+  getState: () => state,
+  dispatch: (action) => setState(reducer(state, action)),
   subscribe(fn) {
-    store.listeners.push(fn)
+    listeners.push(fn)
     return () => {
-      const index = store.listeners.indexOf(fn)
-      store.listeners.splice(index, 1)
+      const index = listeners.indexOf(fn)
+      listeners.splice(index, 1)
     }
   }
 }
-export const createStore = (initState, reducer) => {
-  store.state = initState
-  store.reducer = reducer
+
+export const createStore = (initState, _reducer) => {
+  state = initState
+  reducer = _reducer
   return store;
 }
+
 export const Provider = ({ store, children }) => {
   const appContext = React.createContext(null)
 
@@ -47,7 +51,8 @@ const changed = (oldState, newState) => {
 export const connect = (selector, mapDispatchToProps) => (Component) => {
   /** 为了实现dispatch, 类似react-redux 的 connect */
   return (props) => {
-    const { state, setState, subscribe } = store
+    const { getState, dispatch, subscribe } = store
+    const state = getState()
     const selectorState = selector ? selector(state) : { state }
     const [_, update] = useState({})
     useEffect(() => {
@@ -61,7 +66,6 @@ export const connect = (selector, mapDispatchToProps) => (Component) => {
       return unSubscribe
     }, [selector])
 
-    const dispatch = (action) => setState(store.reducer(state, action))
     const dispatchProps = mapDispatchToProps ? mapDispatchToProps(dispatch) : { dispatch }
 
 
