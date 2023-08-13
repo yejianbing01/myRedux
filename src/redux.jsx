@@ -51,7 +51,7 @@ const changed = (oldState, newState) => {
 export const connect = (selector, mapDispatchToProps) => (Component) => {
   /** 为了实现dispatch, 类似react-redux 的 connect */
   return (props) => {
-    const { getState, dispatch, subscribe } = store
+    const { getState, subscribe } = store
     const state = getState()
     const selectorState = selector ? selector(state) : { state }
     const [_, update] = useState({})
@@ -65,6 +65,16 @@ export const connect = (selector, mapDispatchToProps) => (Component) => {
       // 这里最好取消订阅， 否则在 selector 变化时会出现重复订阅
       return unSubscribe
     }, [selector])
+
+    // 增强 dispatch，支持异步action
+    const prevDispatch = store.dispatch
+    const dispatch = (action) => {
+      if (action instanceof Function) {
+        action(dispatch)
+      } else {
+        prevDispatch(action)
+      }
+    }
 
     const dispatchProps = mapDispatchToProps ? mapDispatchToProps(dispatch) : { dispatch }
 
