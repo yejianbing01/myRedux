@@ -15,7 +15,9 @@ export const App = () => {
   return (
     <appContext.Provider value={contextValue}>
       <Children1/>
-      <Wrapper/>
+      <Children2>
+        children2 的 内容
+      </Children2>
       <Children3/>
     </appContext.Provider>
   )
@@ -37,20 +39,23 @@ const reducer = (state, { type, payload } ) => {
   }
 }
 
-/** 为了实现dispatch, 类似react-redux 的 connect */
-const Wrapper = () => {
-  const { appState, setAppState } = useContext(appContext)
+const connect = (Component) => {
+  /** 为了实现dispatch, 类似react-redux 的 connect */
+  return (props) => {
+    const { appState, setAppState } = useContext(appContext)
 
-  const dispatch = (action) => {
-    setAppState(reducer(appState, action))
+    const dispatch = (action) => {
+      setAppState(reducer(appState, action))
+    }
+
+    return <Component {...props} dispatch={dispatch} state={appState} />
   }
-
-  return <Children2 dispatch={dispatch} state={appState} />
 }
+
 
 // ---------------------- children ----------------------
 
-const Children1 = () => {
+const Children1 = connect(() => {
   const contextValue = useContext(appContext)
   return (
       <section>
@@ -58,10 +63,9 @@ const Children1 = () => {
         { contextValue.appState.user.name }
       </section>
     )
-}
+})
 
-const Children2 = ({ dispatch, state}) => {
-
+const Children2 = connect(({ dispatch, state, ...props }) => {
   const onChange = (e) => {
     dispatch({
       type: 'updateUser',
@@ -71,10 +75,10 @@ const Children2 = ({ dispatch, state}) => {
 
   return (
     <section>
-      children2
+      { props.children }
       <input value={state.user.name} onChange={onChange}/>
     </section>
   )
-} 
+})
 
 const Children3 = () => <section>children3</section>
